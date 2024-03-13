@@ -3,11 +3,21 @@
 	"apiVersion": 3,
 	"name": "create-block/wpquran",
 	"version": "0.1.0",
-	"title": "Wpquran",
-	"category": "widgets",
-	"icon": "smiley",
-	"description": "Example block scaffolded with Create Block tool.",
-	"example": {},
+	"title": "Wp Quran",
+	"category": "media",
+	"icon": "book-alt",
+	"description": "Insert Quran verse with translation as image.",
+	"attributes": {
+		"url": {
+			"type": "string",
+			"default": "https://placequran.com/0"
+		}
+	},
+	"example": {
+		"attributes": {
+			"url": "https://placequran.com/1/1-7/ar,en"
+		}
+	},
 	"supports": {
 		"html": false
 	},
