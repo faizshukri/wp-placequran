@@ -1,9 +1,9 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
-	"name": "create-block/wpquran",
+	"name": "create-block/placequran",
 	"version": "0.1.0",
-	"title": "Wp Quran",
+	"title": "Place Quran",
 	"category": "media",
 	"icon": "book-alt",
 	"description": "Insert Quran verse with translation as image.",
@@ -11,6 +11,26 @@
 		"url": {
 			"type": "string",
 			"default": "https://placequran.com/0"
+		},
+		"surah": {
+			"type": "integer",
+			"default": 0
+		},
+		"verse": {
+			"type": "string",
+			"default": ""
+		},
+		"translation": {
+			"type": "array",
+			"default": []
+		},
+		"size": {
+			"type": "string",
+			"default": "auto"
+		},
+		"alignment": {
+			"type": "string",
+			"default": "left"
 		}
 	},
 	"example": {
@@ -21,9 +41,8 @@
 	"supports": {
 		"html": false
 	},
-	"textdomain": "wpquran",
+	"textdomain": "placequran",
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",
-	"style": "file:./style-index.css",
-	"viewScript": "file:./view.js"
+	"style": "file:./style-index.css"
 }

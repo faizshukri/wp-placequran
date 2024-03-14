@@ -1,68 +1,42 @@
-/**
- * Retrieves the translation of text.
- *
- * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-i18n/
- */
 import { __ } from "@wordpress/i18n";
-
-/**
- * React hook that is used to mark the block wrapper element.
- * It provides all the necessary props like the class name.
- *
- * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
- */
-import { useBlockProps, InspectorControls } from "@wordpress/block-editor";
+import {
+	useBlockProps,
+	InspectorControls,
+	AlignmentToolbar,
+	BlockControls,
+} from "@wordpress/block-editor";
 import {
 	PanelBody,
 	ComboboxControl,
 	TextControl,
 	FormTokenField,
-	Button,
+	SelectControl,
+	ToolbarGroup,
 } from "@wordpress/components";
+import { useDebounce } from "@wordpress/compose";
 
 import { useState, useEffect } from "react";
-
-/**
- * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
- * Those files can contain any CSS code that gets applied to the editor.
- *
- * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
- */
-import "./editor.scss";
-
-/**
- * The edit function describes the structure of your block in the context of the
- * editor. This represents what the editor will render when the block is used.
- *
- * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
- *
- * @return {Element} Element to render.
- */
+import { Sura } from "./quran-data";
+import "./edit.scss";
 
 export default function Edit({ attributes, setAttributes }) {
-	const { url } = attributes;
-	const [surah, setSurah] = useState("");
-	const [verse, setVerse] = useState("");
-	const [translation, setTranslation] = useState([]);
+	const { url, surah, verse, translation, size, alignment } = attributes;
+	const [invalidVerse, setInvalidVerse] = useState(false);
+	const [loading, setLoading] = useState(false);
+
+	useEffect(
+		useDebounce(() => triggerChange(), 1000),
+		[verse],
+	);
 
 	useEffect(() => {
 		triggerChange();
-	}, [surah, verse, translation]);
+	}, [surah, translation, size]);
 
-	const options = [
-		{
-			value: "1",
-			label: "1. Al Fatihah",
-		},
-		{
-			value: "2",
-			label: "2. Al Baqarah",
-		},
-		{
-			value: "3",
-			label: "3. Ali Imran",
-		},
-	];
+	const options = Sura.slice(1, 115).map((s, index) => ({
+		value: index + 1,
+		label: `${index + 1} ${s[5]} (${s[1]})`,
+	}));
 
 	const translationOptions = [
 		{
@@ -75,12 +49,35 @@ export default function Edit({ attributes, setAttributes }) {
 		},
 	];
 
-	const validateVerse = (verses) => {
-		if (/[^\d,-\s]/.test(verses) || /(^|[,-])\s*([,-]|$)/.test(verses)) {
+	const validatedVerse = (verses) => {
+		try {
+			if (/[^\d,-\s]/.test(verses) || /(^|[,-])\s*([,-]|$)/.test(verses)) {
+				throw new Error("Invalid verses");
+			}
+
+			const res = verses
+				.replace(" ", "")
+				.split(",")
+				.flatMap((num) => {
+					if (num.includes("-")) {
+						const [from, to] = num.split("-").map((num) => parseInt(num));
+						if (from > to) {
+							throw new Error("Invalid verses");
+						}
+
+						return Array(to - from + 1)
+							.fill(0)
+							.map((_, idx) => from + idx);
+					}
+
+					return parseInt(num);
+				});
+
+			return res;
+		} catch {
+			setInvalidVerse(true);
 			return false;
 		}
-
-		return true;
 	};
 
 	const triggerChange = () => {
@@ -88,55 +85,118 @@ export default function Edit({ attributes, setAttributes }) {
 			return;
 		}
 
-		if (validateVerse(verse)) {
-			const newUrl = `https://placequran.com/${surah}/${verse}/ar${
+		if (validatedVerse(verse)) {
+			const newUrl = `https://placequran.com/${
+				size !== "auto" ? size + "/" : ""
+			}${surah}/${verse}/ar${
 				translation.length == 0 ? "" : "," + translation.join(",")
 			}`;
-			setAttributes({
-				url: newUrl,
-			});
+
+			if (newUrl !== url) {
+				setLoading(true);
+				setAttributes({
+					url: newUrl,
+				});
+			}
+			setInvalidVerse(false);
 		}
 	};
 
+	const onImageLoad = () => {
+		setLoading(false);
+	};
+
 	return (
-		<div {...useBlockProps()}>
+		<p {...useBlockProps()} style={{ textAlign: alignment }}>
 			<InspectorControls>
 				<PanelBody title="Settings">
 					<ComboboxControl
 						label="Surah"
 						value={surah}
-						onChange={(x) => {
-							setSurah(x);
-						}}
+						onChange={(x) => setAttributes({ surah: x })}
 						options={options}
 					/>
 					<TextControl
 						help="Range and/or comma separated. eg: 1-5,7"
-						label="Verses"
+						label={`Verses ${invalidVerse ? "- Invalid" : ""}`}
 						value={verse}
-						onChange={(x) => {
-							setVerse(x);
-						}}
+						onChange={(x) => setAttributes({ verse: x })}
+						className={invalidVerse ? "invalid" : ""}
 					/>
 					<FormTokenField
 						__experimentalAutoSelectFirstMatch
 						__experimentalExpandOnFocus
 						label="Translations"
-						onChange={(translations) => {
-							setTranslation(
-								translations.map(
+						onChange={(translations) =>
+							setAttributes({
+								translation: translations.map(
 									(x) => translationOptions.find((y) => y.label == x).value,
 								),
-							);
-						}}
+							})
+						}
 						suggestions={translationOptions.map(({ label }) => label)}
 						value={translation.map(
 							(x) => translationOptions.find((y) => y.value == x).label,
 						)}
 					/>
+					<SelectControl
+						label="Size"
+						help="Adaptive will adjust the size according to the viewing device."
+						value={size}
+						onChange={(x) => setAttributes({ size: x })}
+						options={[
+							{
+								disabled: true,
+								label: "Select a size",
+								value: "",
+							},
+							{
+								label: "Adaptive (auto)",
+								value: "auto",
+							},
+							{
+								label: "Small",
+								value: "s",
+							},
+							{
+								label: "Medium",
+								value: "m",
+							},
+							{
+								label: "Large",
+								value: "l",
+							},
+						]}
+					/>
 				</PanelBody>
 			</InspectorControls>
-			<img src={url} />
-		</div>
+			<BlockControls>
+				<ToolbarGroup>
+					<AlignmentToolbar
+						value={alignment}
+						onChange={(x) => setAttributes({ alignment: x })}
+					/>
+				</ToolbarGroup>
+			</BlockControls>
+			<img src={url} onLoad={onImageLoad} />
+			{loading && (
+				<span
+					style={{
+						backgroundColor: "black",
+						opacity: 0.6,
+						position: "absolute",
+						width: "100%",
+						height: "100%",
+						top: 0,
+						left: 0,
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+					}}
+				>
+					<i className="loader"></i>
+				</span>
+			)}
+		</p>
 	);
 }
