@@ -2,7 +2,7 @@
 
 /**
  * Plugin Name:       Place Quran
- * Plugin URI:        https://github.com/faizshukri/wp-quran
+ * Plugin URI:        https://github.com/faizshukri/wp-placequran
  * Description:       Insert Quran verse with translation as image
  * Author:            Faiz Shukri
  * Author URI:        https://faizshukri.com
@@ -11,7 +11,7 @@
  * Version:           0.1.0
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       phpquran
+ * Text Domain:       placequran
  *
  * @package           create-block
  */
@@ -27,8 +27,8 @@ if (!defined('ABSPATH')) {
  *
  * @see https://developer.wordpress.org/reference/functions/register_block_type/
  */
-function phpquran_block_init()
+function placequran_block_init()
 {
 	register_block_type(__DIR__ . '/build');
 }
-add_action('init', 'phpquran_block_init');
+add_action('init', 'placequran_block_init');
