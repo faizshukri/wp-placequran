@@ -47,6 +47,22 @@ export default function Edit({ attributes, setAttributes }) {
 			value: "ms",
 			label: "Malay",
 		},
+		{
+			value: "id",
+			label: "Indonesia",
+		},
+		{
+			value: "tr",
+			label: "Turkish",
+		},
+		{
+			value: "ur",
+			label: "Urdu",
+		},
+		{
+			value: "hi",
+			label: "Hindi",
+		},
 	];
 
 	const validatedVerse = (verses) => {
@@ -126,7 +142,7 @@ export default function Edit({ attributes, setAttributes }) {
 					<FormTokenField
 						__experimentalAutoSelectFirstMatch
 						__experimentalExpandOnFocus
-						label="Translations"
+						label="Translations (max: 2)"
 						onChange={(translations) =>
 							setAttributes({
 								translation: translations.map(
