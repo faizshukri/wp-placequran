@@ -194,7 +194,25 @@ export default function Edit({ attributes, setAttributes }) {
 					/>
 				</ToolbarGroup>
 			</BlockControls>
-			<img src={url} onLoad={onImageLoad} />
+			{url ? (
+				<img src={url} onLoad={onImageLoad} />
+			) : (
+				<div
+					style={{
+						border: "2px dashed #b9b9b9",
+						borderRadius: "7px",
+						backgroundColor: "#ededed",
+						height: "80px",
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "center",
+						color: "#666666",
+					}}
+				>
+					Select surah and verse from the sidebar
+				</div>
+			)}
+
 			{loading && (
 				<span
 					style={{

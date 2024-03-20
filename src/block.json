@@ -9,8 +9,7 @@
 	"description": "Insert Quran verse with translation as image.",
 	"attributes": {
 		"url": {
-			"type": "string",
-			"default": "https://placequran.com/0"
+			"type": "string"
 		},
 		"surah": {
 			"type": "integer",
